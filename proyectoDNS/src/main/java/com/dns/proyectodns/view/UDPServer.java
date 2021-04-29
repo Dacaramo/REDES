@@ -14,7 +14,7 @@ import java.net.InetAddress;
  * @author cristobalcastrillonbalcazar
  */
 public class UDPServer {
-    public static void main(String[] a) throws Exception {
+    public UDPServer() throws Exception {
         
         int serverPortNumber = 53; //Número de Puerto Estándar para DNS: 53
         
