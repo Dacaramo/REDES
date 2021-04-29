@@ -3,13 +3,17 @@ package com.dns.proyectodns.view;
 import java.net.DatagramSocket;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
+import java.net.SocketException;
 
 public class UDPClient {
+    
+    
     public UDPClient () throws Exception {
         
+        try{
         DatagramSocket clientSocket = new DatagramSocket();
 
-        String url = new String("www.gugol.com"); //Recibimos como parámetro del comando (?)
+        String url = "www.gugol.com"; //Recibimos como parámetro del comando (?)
         byte[] urlByteArray = url.getBytes();
         
         InetAddress dns_ip_address = InetAddress.getLocalHost(); //Qué dirección será la del DNS? Se recibe como parámetro del comando (no necesariamente ingresada por el usuario)?
@@ -28,8 +32,12 @@ public class UDPClient {
         
         //Las siguientes líneas son de prueba:
         String response = new String(responsePacket.getData());
-        System.out.println(response);
-        
+        System.out.println(response);  
+        }
+        catch(Exception e){
+            throw new SocketException();
+        }
     }
+    
     
 }

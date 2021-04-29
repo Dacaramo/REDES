@@ -8,6 +8,7 @@ package com.dns.proyectodns.view;
 import java.net.DatagramSocket;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
+import java.net.SocketException;
 
 /**
  *
@@ -16,6 +17,7 @@ import java.net.InetAddress;
 public class UDPServer {
     public UDPServer() throws Exception {
         
+        try{
         int serverPortNumber = 53; //Número de Puerto Estándar para DNS: 53
         
         DatagramSocket serverSocket = new DatagramSocket(serverPortNumber);
@@ -39,5 +41,9 @@ public class UDPServer {
         
         DatagramPacket queryResponse = new DatagramPacket(ipResByteArray, ipResByteArray.length, client_ip_address, clientPortNumber);
         serverSocket.send(queryResponse);
+        } 
+        catch(Exception e){
+            throw new SocketException();
+        }
     }
 }

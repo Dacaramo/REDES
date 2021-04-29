@@ -16,7 +16,8 @@ import java.util.logging.Logger;
  */
 public class Controlador {
     
-    public static void main(String[] args) {
+    public static void  main(String[] args) throws Exception {
+        
         try {
         UDPClient cliente = new UDPClient();
         UDPServer servidor = new UDPServer();
