@@ -76,13 +76,13 @@ public class DNS {
     }
 
     private static byte[] CrearRespuesta(byte[] data) {
-        byte[] TrID = {0,0};
+        byte[] trID = {0,0};
         System.out.println("TransactionID");
         int index = 0;
         //TransactionID
         while(index < 2){
-            TrID[index] = data[index];
-            System.out.println(TrID[index]);
+            trID[index] = data[index];
+            System.out.println(trID[index]);
             index++;
         }
         
@@ -99,26 +99,35 @@ public class DNS {
         //ANCOUNT
         //NSCOUNT
         //ARCOUNT
-        return TrID;
+        return trID;
     }
     
-    private static void extraerData(byte[] data) {
-        byte[] TrID = {0,0};
+    private static ArrayList<byte[]> extraerData(byte[] data) {
+        //ArrayList where query data is stored
+        ArrayList<byte[]> queryData = new ArrayList<byte[]>();
+        
+        byte[] trID = {0,0};
         System.out.println("TransactionID");
         int index = 0;
         //TransactionID
         while(index < 2){
-            TrID[index] = data[index];
-            System.out.println(TrID[index]);
+            trID[index] = data[index];
+            System.out.println(trID[index]);
             index++;
         }
         
+        queryData.add(trID);
+        
         //QR, OpCode & Banderas (sin RA)
-        byte thirdByte = data[index++];
+        byte[] thirdByte = {0};
+        thirdByte[0] = data[index++];
+        queryData.add(thirdByte);
         //RA
         //Z (Reserved for Future Use) = 4 bits en 0
         //RCODE 0 = No Error
-        byte razRcode = data[index++];
+        byte[] razRcode = {0};
+        razRcode[0] = data[index++];
+        queryData.add(razRcode);
         
         System.out.println(razRcode);
         
@@ -129,6 +138,7 @@ public class DNS {
             qdCount[i] = data[index];
             index++;
         }
+        queryData.add(qdCount);
         
         //ANCOUNT
         byte[] anCount = {0,0};
@@ -136,6 +146,7 @@ public class DNS {
             anCount[i] = data[index];
             index++;
         }
+        queryData.add(anCount);
         
         //NSCOUNT
         byte[] nsCount = {0,0};
@@ -143,6 +154,7 @@ public class DNS {
             nsCount[i] = data[index];
             index++;
         }
+        queryData.add(nsCount)
         
         //ARCOUNT
         byte[] arCount = {0,0};
@@ -150,16 +162,18 @@ public class DNS {
             arCount[i] = data[index];
             index++;
         }
+        queryData.add(arCount);
         
         //Question section
         //qdCountInt: qdCount en entero
         //OJO: Solo se está tomando el segundo Byte (i.e. QDCOUNT máximo = 2^8)
         int qdCountInt = qdCount[1];
-        for(int i = 0; i < qdCountInt; i++){
+        //for(int i = 0; i < qdCountInt; i++){
             //QNAME
             //QTYPE
             //QCLASS
-        }
+        //}
+        return queryData;
     }
 
 }
