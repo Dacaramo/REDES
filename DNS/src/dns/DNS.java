@@ -17,9 +17,10 @@ public class DNS {
 
         try {
             //Listado de registros tipo A
-            /*ArrayList<ArrayList<String>> registros = new ArrayList<ArrayList<String>>();
+            ArrayList<ArrayList<String>> registros = new ArrayList<ArrayList<String>>();
             
-            File masterFile = new File("masterFile.txt");
+            //Pasarle el path completo al constructor del file
+            File masterFile = new File("/Users/cristobalcastrilonbalcazar/REDES/DNS/src/files/masterFile.txt");
             FileReader masterReader = new FileReader(masterFile);
             BufferedReader reader = new BufferedReader(masterReader);
             
@@ -36,7 +37,7 @@ public class DNS {
                 registros.add(filaList);
             }
             
-            reader.close();*/
+            reader.close();
             
             //Socket al puerto DNS (#53)
             DatagramSocket socketUDP = new DatagramSocket(53);
@@ -218,7 +219,7 @@ public class DNS {
         return queryData;
     }
      
-    public static String toBits(final byte val) {
+    private static String toBits(final byte val) {
         final StringBuilder result = new StringBuilder();
 
         for (int i=0; i<8; i++) {
@@ -227,7 +228,13 @@ public class DNS {
 
         return result.toString();
     }
-
+    
+    private static ArrayList<String> findInMasterFile(String name, ArrayList<ArrayList<String>> registros){
+        for(ArrayList<String> row : registros){
+            if(row.get(0).compareTo(name) == 0){
+                return row;
+            }
+        }
+        return null;
+    }
 }
-
-//nslookup www.google.com 127.0.0.1
