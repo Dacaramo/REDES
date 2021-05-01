@@ -5,23 +5,15 @@ import java.net.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-/**
- *
- * @author USUARIO
- */
 public class DNS {
         
-    /**
-     * @param args the command line arguments
-     */
     public static void main(String[] args) throws IOException {
 
         try {
             //Listado de registros tipo A
-            ArrayList<ArrayList<String>> registros = new ArrayList<ArrayList<String>>();
+            ArrayList<ArrayList<String>> registros = new ArrayList<>();
             
-            //Pasarle el path completo al constructor del file
-            File masterFile = new File("/Users/cristobalcastrilonbalcazar/REDES/DNS/src/files/masterFile.txt");
+            File masterFile = new File("/Users/cristobalcastrilonbalcazar/REDES/DNS/src/files/masterFile.txt"); //Pasarle el path completo al constructor del file
             FileReader masterReader = new FileReader(masterFile);
             BufferedReader reader = new BufferedReader(masterReader);
             
@@ -29,7 +21,7 @@ public class DNS {
             
             while((fileLine = reader.readLine()) != null){
                 String[] col = fileLine.split(",");
-                ArrayList<String> filaList = new ArrayList<String>();
+                ArrayList<String> filaList = new ArrayList<>();
                 filaList.add(col[0]);
                 filaList.add(col[1]);
                 filaList.add(col[2]);
@@ -54,13 +46,11 @@ public class DNS {
                 // Leemos una petición del DatagramSocket
                 socketUDP.receive(peticion);
 
-                System.out.print("Datagrama recibido del host: "
-                        + peticion.getAddress());
-                System.out.println(" desde el puerto remoto: "
-                        + peticion.getPort());
+                System.out.print("Datagrama recibido del host: "+ peticion.getAddress());
+                System.out.println("Desde el puerto remoto: "+ peticion.getPort());
 
                 //queryResponseDataMap: HashMap de Campos compartidos entre Query y Response.
-                HashMap<String, String> queryResponseDataMap = new HashMap<String, String>();
+                HashMap<String, String> queryResponseDataMap = new HashMap<>();
                 ArrayList<byte[]> queryData = extraerData(peticion.getData(), queryResponseDataMap);
                 
                 // Construimos el DatagramPacket para enviar la respuesta
@@ -80,7 +70,7 @@ public class DNS {
 
     private static ArrayList<Byte> crearRespuesta(HashMap<String, String> queryResponseDataMap, ArrayList<ArrayList<String>> registros, ArrayList<byte[]> camposByte) {
         
-        ArrayList<Byte> response = new ArrayList<Byte>();
+        ArrayList<Byte> response = new ArrayList<>();
         String responseStr = "";
         
         String trID = queryResponseDataMap.get("ID");
@@ -132,14 +122,14 @@ public class DNS {
         }
         
         //Añadiendo QNAME, QTYPE y QCLASS del camposByte
-        response.add(camposByte[7]);
-        response.add(camposByte[8]);
-        response.add(camposByte[9]);
+        response.add(Byte.parseByte(camposByte.get(7).toString()));
+        response.add(camposByte.get(8));
+        response.add(camposByte.get(9));
     }
     
     private static ArrayList<byte[]> extraerData(byte[] data, HashMap<String, String> queryResponseDataMap) {
         //ArrayList where query data is stored
-        ArrayList<byte[]> queryData = new ArrayList<byte[]>();
+        ArrayList<byte[]> queryData = new ArrayList<>();
         
         byte[] trID = {0,0};
         int index = 0;
@@ -282,7 +272,7 @@ public class DNS {
     }
     
     private static ArrayList<ArrayList<String>> findInMasterFile(String name, ArrayList<ArrayList<String>> registros){
-        ArrayList<ArrayList<String>> registrosNombre = new ArrayList<ArrayList<String>>();
+        ArrayList<ArrayList<String>> registrosNombre = new ArrayList<>();
         for(ArrayList<String> row : registros){
             if(row.get(0).compareTo(name) == 0){
                 registrosNombre.add(row);
