@@ -1,14 +1,8 @@
 package dns;
 
-import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.SocketAddress;
-import java.net.SocketException;
+import java.io.*;
+import java.net.*;
+import java.util.ArrayList;
 
 /**
  *
@@ -22,12 +16,34 @@ public class DNS {
     public static void main(String[] args) throws IOException {
 
         try {
+            //Listado de registros tipo A
+            ArrayList<ArrayList<String>> registros = new ArrayList<ArrayList<String>>();
             
+            File masterFile = new File("masterFile.txt");
+            FileReader masterReader = new FileReader(masterFile);
+            BufferedReader reader = new BufferedReader(masterReader);
+            
+            String fileLine;
+            
+            while((fileLine = reader.readLine()) != null){
+                String[] col = fileLine.split(",");
+                ArrayList<String> filaList = new ArrayList<String>();
+                filaList.add(col[0]);
+                filaList.add(col[1]);
+                filaList.add(col[2]);
+                filaList.add(col[3]);
+                
+                registros.add(filaList);
+            }
+            
+            reader.close();
+            
+            //Socket al puerto DNS (#53)
             DatagramSocket socketUDP = new DatagramSocket(53);
             
             //Messages carried by UDP are restricted to 512 bytes (not counting the IP or UDP headers)
             byte[] buffer = new byte[512];
-
+            
             while (true) {
                 // Construimos el DatagramPacket para recibir peticiones
                 //NOTA: El Datagram es un Datagrama UDP (tamaño de UDP Datagram)
