@@ -17,7 +17,7 @@ public class DNS {
 
         try {
             //Listado de registros tipo A
-            ArrayList<ArrayList<String>> registros = new ArrayList<ArrayList<String>>();
+            /*ArrayList<ArrayList<String>> registros = new ArrayList<ArrayList<String>>();
             
             File masterFile = new File("masterFile.txt");
             FileReader masterReader = new FileReader(masterFile);
@@ -36,7 +36,7 @@ public class DNS {
                 registros.add(filaList);
             }
             
-            reader.close();
+            reader.close();*/
             
             //Socket al puerto DNS (#53)
             DatagramSocket socketUDP = new DatagramSocket(53);
@@ -63,7 +63,7 @@ public class DNS {
                 
                 DatagramPacket respuesta = new DatagramPacket(peticion.getData(), peticion.getLength(), peticion.getAddress(), peticion.getPort());
                 
-                byte[] b = CrearRespuesta(peticion.getData());
+                //byte[] b = CrearRespuesta(peticion.getData());
                 // Enviamos la respuesta, que es un eco
                 socketUDP.send(respuesta);
             }
@@ -105,23 +105,30 @@ public class DNS {
     private static ArrayList<byte[]> extraerData(byte[] data) {
         //ArrayList where query data is stored
         ArrayList<byte[]> queryData = new ArrayList<byte[]>();
+        ArrayList<String> queryDataStr = new ArrayList<String>();
+        
+        //TransactionID
+        System.out.println("Transaction ID:");
         
         byte[] trID = {0,0};
-        System.out.println("TransactionID");
         int index = 0;
-        //TransactionID
+        String trIDStr = "";
         while(index < 2){
             trID[index] = data[index];
-            System.out.println(trID[index]);
+            trIDStr += toBits(data[index]);
             index++;
         }
         
         queryData.add(trID);
+        queryDataStr.add(trIDStr);
+        
+        System.out.println(trIDStr);
         
         //QR, OpCode & Banderas (sin RA)
         byte[] thirdByte = {0};
         thirdByte[0] = data[index++];
         queryData.add(thirdByte);
+        
         //RA
         //Z (Reserved for Future Use) = 4 bits en 0
         //RCODE 0 = No Error
@@ -129,16 +136,16 @@ public class DNS {
         razRcode[0] = data[index++];
         queryData.add(razRcode);
         
-        System.out.println(razRcode);
-        
         //QDCOUNT
-        //TODO: Convertir a entero
+        String qdCountStr = "";
         byte[] qdCount = {0,0};
         for(int i = 0; i < 2; i++){
             qdCount[i] = data[index];
+            qdCountStr += toBits(data[index]);
             index++;
         }
         queryData.add(qdCount);
+        queryDataStr.add(qdCountStr);
         
         //ANCOUNT
         byte[] anCount = {0,0};
@@ -154,7 +161,7 @@ public class DNS {
             nsCount[i] = data[index];
             index++;
         }
-        queryData.add(nsCount)
+        queryData.add(nsCount);
         
         //ARCOUNT
         byte[] arCount = {0,0};
@@ -166,14 +173,59 @@ public class DNS {
         
         //Question section
         //qdCountInt: qdCount en entero
-        //OJO: Solo se está tomando el segundo Byte (i.e. QDCOUNT máximo = 2^8)
-        int qdCountInt = qdCount[1];
-        //for(int i = 0; i < qdCountInt; i++){
+        int qdCountInt = Integer.parseInt(qdCountStr, 2);
+        for(int i = 0; i < qdCountInt; i++){
             //QNAME
+            
+            //Label: cada una de los strings (sin los puntos) que contiene un URL
+            //Ejemplo: www.google.com (www, google, com)
+            //int j = 0;
+            String q_name_lengthStr = ""; 
+            int labelLength = 0;
+            
+            //String donde se va a almacenar el nombre de dominio
+            String name = "";
+            
+            while(data[index] != 0){
+                
+                //La siguiente línea es de prueba...
+                System.out.println(index);
+                
+                q_name_lengthStr = toBits(data[index++]);
+                labelLength = Integer.parseInt(q_name_lengthStr, 2);
+                
+                byte[] byteName = new byte[labelLength];
+                for(int k = 0; k < labelLength; k++){
+                    byteName[k] = data[index];
+                    index++;
+                }
+                
+                //La siguiente línea es de prueba...
+                System.out.println(new String(byteName));
+                
+                //index++;
+                //Label copiado al nombre
+                name += new String(byteName) + '.';
+            }
+            name = name.substring(0, name.length()-1);
+            //La siguiente línea es de prueba...
+            System.out.println(name);
+            
             //QTYPE
             //QCLASS
-        //}
+        }
+        
         return queryData;
+    }
+     
+    public static String toBits(final byte val) {
+        final StringBuilder result = new StringBuilder();
+
+        for (int i=0; i<8; i++) {
+                result.append((int)(val >> (8-(i+1)) & 0x0001));
+        }
+
+        return result.toString();
     }
 
 }
