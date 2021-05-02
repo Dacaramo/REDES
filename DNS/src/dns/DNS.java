@@ -63,7 +63,19 @@ public class DNS {
                 ArrayList<byte[]> queryData = extraerData(peticion.getData(), queryResponseDataMap);
 
                 ArrayList<Byte> respuestaBytes = crearRespuesta(queryResponseDataMap, registros, queryData);
-                byte[] respuesta = fromByteListToArray(respuestaBytes);
+                byte[] respuesta = new byte[512];
+                if(respuestaBytes != null)
+                    respuesta = fromByteListToArray(respuestaBytes);
+                else{
+                    InetAddress dnsIP = InetAddress.getByName("8.8.8.8");
+                    DatagramPacket recQuery = new DatagramPacket(peticion.getData(), peticion.getLength(), dnsIP, 53);
+                    socketUDP.send(recQuery);
+                    DatagramPacket recResponse = new DatagramPacket(buffer, buffer.length);
+                    socketUDP.receive(recResponse);
+                    recResponse.setAddress(peticion.getAddress());
+                    recResponse.setPort(peticion.getPort());
+                    socketUDP.send(recResponse);
+                }
                 // Enviamos la respuesta, que es un eco
                 
                 // Construimos el DatagramPacket para enviar la respuesta
@@ -94,7 +106,7 @@ public class DNS {
         
         ArrayList<ArrayList<String>> foundName = findInMasterFile(qName, registros);
         
-        if(!foundName.isEmpty()){
+        if(foundName != null){
             Integer anCount = foundName.size();
             String anCountStr = String.format("%16s", Integer.toBinaryString(anCount)).replace(' ', '0');
             
@@ -209,9 +221,8 @@ public class DNS {
             response.addAll(rr_response);
         }
         else{
-            //HACER (REMITIR) QUERY A OTRO DNS
+            response = null;
         }
-        
         return response;
     }
     
