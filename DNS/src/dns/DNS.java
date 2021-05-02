@@ -64,24 +64,29 @@ public class DNS {
 
                 ArrayList<Byte> respuestaBytes = crearRespuesta(queryResponseDataMap, registros, queryData);
                 byte[] respuesta = new byte[512];
-                if(respuestaBytes != null)
+                if(respuestaBytes != null){
                     respuesta = fromByteListToArray(respuestaBytes);
+                    // Construimos el DatagramPacket para enviar la respuesta
+                    DatagramPacket responsePacket = new DatagramPacket(respuesta, respuesta.length, peticion.getAddress(), peticion.getPort());
+                    socketUDP.send(responsePacket);
+                    
+                    System.out.println("Datagrama enviado al host: " + responsePacket.getAddress());
+                    System.out.println("Puerto remoto: " + responsePacket.getPort());
+                }
                 else{
                     InetAddress dnsIP = InetAddress.getByName("8.8.8.8");
                     DatagramPacket recQuery = new DatagramPacket(peticion.getData(), peticion.getLength(), dnsIP, 53);
                     socketUDP.send(recQuery);
+                    // Construimos el DatagramPacket para enviar la respuesta
                     DatagramPacket recResponse = new DatagramPacket(buffer, buffer.length);
                     socketUDP.receive(recResponse);
                     recResponse.setAddress(peticion.getAddress());
                     recResponse.setPort(peticion.getPort());
                     socketUDP.send(recResponse);
-                }
-                // Enviamos la respuesta, que es un eco
-                
-                // Construimos el DatagramPacket para enviar la respuesta
-                DatagramPacket responsePacket = new DatagramPacket(respuesta, respuesta.length, peticion.getAddress(), peticion.getPort());
-                
-                socketUDP.send(responsePacket);
+                    
+                    System.out.println("Datagrama enviado al host: " + recResponse.getAddress());
+                    System.out.println("Puerto remoto: " + recResponse.getPort());
+                } 
             }
 
         } catch (SocketException e) {
