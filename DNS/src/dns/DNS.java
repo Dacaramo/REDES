@@ -3,7 +3,11 @@ package dns;
 import java.io.*;
 import java.net.*;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Random;
 
 public class DNS {
         
@@ -13,7 +17,7 @@ public class DNS {
             //Listado de registros tipo A
             ArrayList<ArrayList<String>> registros = new ArrayList<>();
             
-            File masterFile = new File("/Users/cristobalcastrilonbalcazar/REDES/DNS/src/files/masterFile.txt"); //Pasarle el path completo al constructor del file
+            File masterFile = new File("C:\\Users\\dankr\\Desktop\\Proyecto-Cristobal-Redes\\REDES-serverDev\\DNS\\src\\dns\\masterFile.txt"); //Pasarle el path completo al constructor del file
             FileReader masterReader = new FileReader(masterFile);
             BufferedReader reader = new BufferedReader(masterReader);
             
@@ -44,6 +48,7 @@ public class DNS {
                 DatagramPacket peticion = new DatagramPacket(buffer, buffer.length);
                 
                 // Leemos una petición del DatagramSocket
+                
                 socketUDP.receive(peticion);
 
                 System.out.print("Datagrama recibido del host: "+ peticion.getAddress());
@@ -52,12 +57,13 @@ public class DNS {
                 //queryResponseDataMap: HashMap de Campos compartidos entre Query y Response.
                 HashMap<String, String> queryResponseDataMap = new HashMap<>();
                 ArrayList<byte[]> queryData = extraerData(peticion.getData(), queryResponseDataMap);
+
+                ArrayList<Byte> respuestaBytes = crearRespuesta(queryResponseDataMap, registros, queryData);
+                // Enviamos la respuesta, que es un eco
                 
                 // Construimos el DatagramPacket para enviar la respuesta
                 DatagramPacket respuesta = new DatagramPacket(peticion.getData(), peticion.getLength(), peticion.getAddress(), peticion.getPort());
                 
-                ArrayList<Byte> respuestaBytes = crearRespuesta(queryResponseDataMap, registros, queryData);
-                // Enviamos la respuesta, que es un eco
                 socketUDP.send(respuesta);
             }
 
@@ -131,26 +137,48 @@ public class DNS {
 
                 byte[] TYPE = {0,0};
                 String tipoRegistro = foundName.get(rrCount).get(3);
-                if(tipoRegistro.equals("A")){
+                int RD_LENGTH = 0;
+                
+                if(tipoRegistro.compareTo("A") == 0){
                     //Agregando TYPE: A = 1 (0000000000000001)
                     TYPE[1] = 1;
+                    RD_LENGTH = 4;
                 }
-                if(tipoRegistro.equals("AAAA")){
+                if(tipoRegistro.compareTo("AAAA") == 0){
                     //Agregando TYPE: AAAA = 28 (0000000000011100)
                     TYPE[1] = 28;
+                    RD_LENGTH = 16;
                 }
                 rr_response.add(TYPE[0]);
                 rr_response.add(TYPE[1]);
 
                 byte[] CLASS = {0,0};
                 String claseRegistro = foundName.get(rrCount).get(2);
-                if(claseRegistro == "IN"){
+                if(claseRegistro.compareTo("IN") == 0){
                     //Agregando CLASS: IN = 1 (0000000000000001)
                     CLASS[1] = 1;
                 }
                 
+                byte[] ttl = convertIntegerToByteArray(300, 32, false);
+                
+                for (byte b : ttl) {
+                    rr_response.add(b);
+                }
+                
+                //RD_LENGTH
+                byte[] rdLength = convertIntegerToByteArray(RD_LENGTH, 16, false);
+                
+                for (byte b : rdLength) {
+                    rr_response.add(b);
+                }
+                
+                //R_DATA
+                rr_response.add(foundName.get(rrCount).get(5).getBytes());
+                
                 
             }
+            
+            response.addAll(rr_response);
         }
         else{
             //HACER (REMITIR) QUERY A OTRO DNS
@@ -263,6 +291,8 @@ public class DNS {
                 name += new String(byteName) + '.';
             }
             
+            
+            
             name = name.substring(0, name.length()-1);
             byte[] qNameByteTrim = fromByteListToArray(qNameByte);
             
@@ -327,4 +357,29 @@ public class DNS {
         }
         return out;
     }
+   
+    
+    public static final byte[] convertIntegerToByteArray(int value,
+            int bytes, boolean revers) {
+        if (bytes == 1 && !revers) {
+            return new byte[] { (byte) value };
+        } else if (bytes == 1 && revers) {
+            return new byte[] { (byte) (value >>> 24) };
+        } else if (bytes == 2 && !revers) {
+            return new byte[] { (byte) (value >>> 8), (byte) value };
+        } else if (bytes == 2 && revers) {
+            return new byte[] { (byte) (value >>> 24),
+                    (byte) (value >>> 16) };
+        } else if (bytes == 3 && !revers) {
+            return new byte[] { (byte) (value >>> 16),
+                    (byte) (value >>> 8), (byte) value };
+        } else if (bytes == 3 && revers) {
+            return new byte[] { (byte) (value >>> 24),
+                    (byte) (value >>> 16), (byte) (value >>> 8) };
+        } else {//www.j a  v a2 s  .c o m
+            return new byte[] { (byte) (value >>> 24),
+                    (byte) (value >>> 16), (byte) (value >>> 8),
+                    (byte) value };
+        }
+    } 
 }
